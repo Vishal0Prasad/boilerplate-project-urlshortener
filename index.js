@@ -41,23 +41,47 @@ mongoose.connect(process.env.MONGO_URI,{ useNewUrlParser: true, useUnifiedTopolo
   console.log(err);
 });
 
+function validateUrl (err,req,res){
+  const code = err.code;
+  console.log("Error code", err,code);
+  if(code === 11000){
+    URL.findOne({
+      original_url: req.body.url
+    }).then((url) => {
+      res.send({
+        original_url: url.original_url,
+        short_url: url.short_url
+      })
+    })
+  }
+  else if(code === 404){
+    res.send({
+      error: 'invalid url'
+    })
+  }
+}
+
 function createURL(req, res){
 
   const original_url= req.body.url;
-  const url = new URL({
-    original_url: original_url
-  });
+  let url;
+  try {
+    url = new URL(original_url);
+  } catch (error) {
+    return res.json({ error: "invalid url" });
+  }
 
   url.save()
   .then((new_url) => {
     console.log("NEW URL", new_url);
-    res.json({
+    return res.json({
       original_url: new_url.original_url,
       short_url: new_url.short_url
     })
   })
   .catch((err) => {
     console.log(err);
+    validateUrl(err, req, res);
   })
 
 }
@@ -73,7 +97,7 @@ app.post("/api/shorturl", function(req,res,next){
       console.log(err,"--",addresses,"--", family)
       console.log(url_extract);
       if(err){
-        res.send({
+        return res.json({
           error: 'invalid url'
         })
       }
@@ -83,7 +107,7 @@ app.post("/api/shorturl", function(req,res,next){
     })
   }
   else{
-    res.json({
+    res.send({
       error: 'invalid url'
     })
   }
@@ -100,7 +124,9 @@ app.get("/api/shorturl/:id?",function(req,res){
       short_url: id
     }).then((doc)=>{
       if(!doc){
-        throw "No short URL found for the given input"
+        throw {
+          message:"No short URL found for the given input"
+        }
       }
       res.redirect(doc.original_url);
     })
