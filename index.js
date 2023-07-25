@@ -10,8 +10,8 @@ const { Counter, UrlModel} = require("./model/URL");
 // Basic Configuration
 const port = process.env.PORT || 3000;
 
-app.use("/api/shorturl", bodyParser.urlencoded({ extended: true }))
 app.use(cors());
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use('/public', express.static(`${process.cwd()}/public`));
 
 app.get('/', function(req, res) {
@@ -56,7 +56,7 @@ function validateUrl (err,req,res){
   }
   else if(code === 404){
     res.send({
-      error: 'invalid url'
+      error: 'Invalid URL'
     })
   }
 }
@@ -68,7 +68,7 @@ function createURL(req, res){
   try {
     url = new UrlModel(original_url);
   } catch (error) {
-    return res.json({ error: "invalid url" });
+    return res.json({ error: "Invalid URL" });
   }
 
   url.save()
@@ -101,7 +101,7 @@ app.post("/api/shorturl", function(req,res,next){
       console.log(url.hostname);
       if(err){
         res.send({
-          error: 'invalid url'
+          error: 'Invalid URL'
         })
       }
       else{
@@ -110,7 +110,7 @@ app.post("/api/shorturl", function(req,res,next){
     })
   }
   catch (error) {
-    return res.json({ error: "invalid url" });
+    return res.json({ error: "Invalid URL" });
   }
   
 }, createURL)
@@ -119,7 +119,7 @@ app.get("/api/shorturl/:id?",function(req,res){
   const id = Number(req.params.id);
   console.log("Number", id);
   if(isNaN(id)){
-    res.send('Not Found');
+    return res.json('Not Found');
   }
   else{
     UrlModel.findOne({
@@ -141,7 +141,7 @@ app.get("/api/shorturl/:id?",function(req,res){
       }
       else{
         res.send({
-          error: 'invalid url'
+          error: 'Invalid URL'
         })
       }
     });
