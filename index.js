@@ -62,7 +62,7 @@ function createURL(req, res){
 
 }
 
-app.post("/api/shorturl", function(req,res,next){
+app.post("/api/shorturl/", function(req,res,next){
 
   const original_url = req.body.url;
   const prefix = /^https?:\/\//i;
@@ -89,10 +89,10 @@ app.post("/api/shorturl", function(req,res,next){
   }
 }, createURL)
 
-app.get("/api/shorturl/:short_url",function(req,res){
-  const short_url = req.params.short_url;
+app.get("/api/shorturl/:id",function(req,res){
+  const id = req.params.id;
   URL.findOne({
-    short_url: short_url
+    short_url: id
   }).then((doc)=>{
     res.redirect(doc.original_url);
   });
