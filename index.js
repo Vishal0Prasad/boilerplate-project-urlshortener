@@ -89,19 +89,13 @@ function createURL(req, res){
 app.post("/api/shorturl", function(req,res,next){
 
   const original_url = req.body.url;
-  const prefix = /^https?:\/\//i;
+  // const prefix = /^https?:\/\//i;
 
   console.log("Received request for: ", original_url);
 
-  if(prefix.test(original_url)){
-    // const url_extract = original_url.split("://")[1];
-    let url;
-    try {
-      url = new URL(original_url);
-    } catch (error) {
-      return res.json({ error: "invalid url" });
-    }
-    // const url = new URL(original_url);
+  try {
+    let url = new URL(original_url);
+
     dns.lookup(url.hostname,function(err, addresses, family){
       console.log(err,"--",addresses,"--", family)
       console.log(url.hostname);
@@ -115,11 +109,10 @@ app.post("/api/shorturl", function(req,res,next){
       }
     })
   }
-  else{
-    res.send({
-      error: 'invalid url'
-    })
+  catch (error) {
+    return res.json({ error: "invalid url" });
   }
+  
 }, createURL)
 
 app.get("/api/shorturl/:id?",function(req,res){
