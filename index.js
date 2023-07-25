@@ -62,7 +62,7 @@ function createURL(req, res){
 
 }
 
-app.post("/api/shorturl/", function(req,res,next){
+app.post("/api/shorturl", function(req,res,next){
 
   const original_url = req.body.url;
   const prefix = /^https?:\/\//i;
@@ -89,13 +89,28 @@ app.post("/api/shorturl/", function(req,res,next){
   }
 }, createURL)
 
-app.get("/api/shorturl/:id",function(req,res){
-  const id = req.params.id;
-  URL.findOne({
-    short_url: id
-  }).then((doc)=>{
-    res.redirect(doc.original_url);
-  });
+app.get("/api/shorturl/:id?",function(req,res){
+  const id = Number(req.params.id);
+  console.log("Number", id);
+  if(isNaN(id)){
+    res.send('Not Found');
+  }
+  else{
+    URL.findOne({
+      short_url: id
+    }).then((doc)=>{
+      if(!doc){
+        throw "Short Url Id doesn't exist"
+      }
+      res.redirect(doc.original_url);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.json({
+        error: 'invalid url'
+      })
+    });
+  }
 })
 
 app.listen(port, function() {
