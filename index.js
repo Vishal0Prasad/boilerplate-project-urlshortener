@@ -89,6 +89,15 @@ app.post("/api/shorturl", function(req,res,next){
   }
 }, createURL)
 
+app.get("/api/shorturl/:short_url",function(req,res){
+  const short_url = req.params.short_url;
+  URL.findOne({
+    short_url: short_url
+  }).then((doc)=>{
+    res.redirect(doc.original_url);
+  });
+})
+
 app.listen(port, function() {
   console.log(`Listening on port ${port}`);
 });
