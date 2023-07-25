@@ -5,7 +5,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const dns = require('dns');
 const mongoose = require("mongoose");
-const { Counter, URL} = require("./model/URL");
+const { Counter, UrlModel} = require("./model/URL");
 
 // Basic Configuration
 const port = process.env.PORT || 3000;
@@ -45,7 +45,7 @@ function validateUrl (err,req,res){
   const code = err.code;
   console.log("Error code", err,code);
   if(code === 11000){
-    URL.findOne({
+    UrlModel.findOne({
       original_url: req.body.url
     }).then((url) => {
       res.send({
@@ -66,7 +66,7 @@ function createURL(req, res){
   const original_url= req.body.url;
   let url;
   try {
-    url = new URL(original_url);
+    url = new UrlModel(original_url);
   } catch (error) {
     return res.json({ error: "invalid url" });
   }
@@ -91,13 +91,22 @@ app.post("/api/shorturl", function(req,res,next){
   const original_url = req.body.url;
   const prefix = /^https?:\/\//i;
 
+  console.log("Received request for: ", original_url);
+
   if(prefix.test(original_url)){
-    const url_extract = original_url.split("://")[1];
-    dns.lookup(url_extract,function(err, addresses, family){
+    // const url_extract = original_url.split("://")[1];
+    let url;
+    try {
+      url = new URL(original_url);
+    } catch (error) {
+      return res.json({ error: "invalid url" });
+    }
+    // const url = new URL(original_url);
+    dns.lookup(url.hostname,function(err, addresses, family){
       console.log(err,"--",addresses,"--", family)
-      console.log(url_extract);
+      console.log(url.hostname);
       if(err){
-        return res.json({
+        res.send({
           error: 'invalid url'
         })
       }
@@ -120,7 +129,7 @@ app.get("/api/shorturl/:id?",function(req,res){
     res.send('Not Found');
   }
   else{
-    URL.findOne({
+    UrlModel.findOne({
       short_url: id
     }).then((doc)=>{
       if(!doc){
@@ -133,12 +142,12 @@ app.get("/api/shorturl/:id?",function(req,res){
     .catch((err) => {
       console.log(err);
       if(err.message === "No short URL found for the given input"){
-        res.json({
+        res.send({
           error: "No short URL found for the given input"
         })
       }
       else{
-        res.json({
+        res.send({
           error: 'invalid url'
         })
       }

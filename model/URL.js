@@ -48,5 +48,5 @@ urlSchema.pre("save",function(next){
 /**
  * Create Model
  */
-exports.URL = mongoose.model("ShortURL",urlSchema);
+exports.UrlModel = mongoose.model("ShortURL",urlSchema);
 exports.Counter = Counter;
