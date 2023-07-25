@@ -11,7 +11,7 @@ const { Counter, UrlModel} = require("./model/URL");
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: true }))
+app.use(bodyParser.urlencoded({ extended: false }))
 app.use('/public', express.static(`${process.cwd()}/public`));
 
 app.get('/', function(req, res) {
@@ -32,7 +32,11 @@ mongoose.connect(process.env.MONGO_URI,{ useNewUrlParser: true, useUnifiedTopolo
   const counter = new Counter({
     _id: "url_counter"
   });
-  return counter.save();
+  return counter.save().catch((err) => {
+    if(err.code === 11000){
+      console.log("Counter already present!")
+    }
+  });
 })
 .then((counter) => {
   console.log("Counter created", counter);
@@ -64,12 +68,9 @@ function validateUrl (err,req,res){
 function createURL(req, res){
 
   const original_url= req.body.url;
-  let url;
-  try {
-    url = new UrlModel(original_url);
-  } catch (error) {
-    return res.json({ error: "Invalid URL" });
-  }
+  let url = new UrlModel({
+    original_url: original_url
+  });
 
   url.save()
   .then((new_url) => {
@@ -89,7 +90,7 @@ function createURL(req, res){
 app.post("/api/shorturl", function(req,res,next){
 
   const original_url = req.body.url;
-  // const prefix = /^https?:\/\//i;
+  const prefix = /^https?:\/\//i;
 
   console.log("Received request for: ", original_url);
 
