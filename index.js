@@ -100,15 +100,22 @@ app.get("/api/shorturl/:id?",function(req,res){
       short_url: id
     }).then((doc)=>{
       if(!doc){
-        throw "Short Url Id doesn't exist"
+        throw "No short URL found for the given input"
       }
       res.redirect(doc.original_url);
     })
     .catch((err) => {
       console.log(err);
-      res.json({
-        error: 'invalid url'
-      })
+      if(err.message === "No short URL found for the given input"){
+        res.json({
+          error: "No short URL found for the given input"
+        })
+      }
+      else{
+        res.json({
+          error: 'invalid url'
+        })
+      }
     });
   }
 })
